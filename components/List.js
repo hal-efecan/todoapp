@@ -17,6 +17,7 @@ import {
   query,
   doc,
   deleteDoc,
+  orderBy,
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
 
@@ -28,6 +29,7 @@ export function List() {
     try {
       const docRef = await addDoc(collection(db, 'todos'), {
         name: todo.name,
+        createdAt: new Date(),
       })
       console.log('Document written with ID: ', docRef.id)
       fetchDoc()
@@ -41,7 +43,7 @@ export function List() {
     const d = []
     try {
       const docRef = collection(db, 'todos')
-      const q = query(docRef)
+      const q = query(docRef, orderBy('createdAt'))
       const querySnapshot = await getDocs(q)
       querySnapshot.forEach((doc) => {
         d.push({
@@ -81,11 +83,11 @@ export function List() {
   }, [todo])
 
   React.useEffect(() => {
-    console.log('list', list)
     if (list.length === 0) {
+      console.log('list', list)
       fetchDoc()
     }
-  }, [list])
+  }, [])
 
   return (
     <Container>
@@ -128,49 +130,55 @@ export function List() {
             ml: 3,
           }}
         >
-          {list.map((item) => {
-            return (
-              <div key={item.id} style={{ marginBottom: '20px' }}>
-                <TextField
-                  id="standard-basic"
-                  variant="outlined"
-                  value={item.name}
-                  disabled={false}
-                  sx={{ width: 350 }}
-                  onChange={(e) => {
-                    const found = list.find((todo) => todo.id === item.id)
-                    console.log('found', found)
-                    setList(
-                      list.map((todo) => {
-                        if (todo.id === found.id) {
-                          return {
-                            ...todo,
-                            name: e.target.value,
-                          }
-                        } else {
-                          return todo
-                        }
-                      })
-                    )
-                  }}
-                />
-                <IconButton
-                  aria-label="edit"
-                  sx={{ ml: 1, mt: 1 }}
-                  onClick={(e) => handleUpdate(item.id)}
-                >
-                  <EditIcon />
-                </IconButton>
-                <IconButton
-                  aria-label="delete"
-                  sx={{ ml: 1, mt: 1 }}
-                  onClick={(e) => handleDelete(item.id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </div>
-            )
-          })}
+          {list.length === 0 ? (
+            'No Todos'
+          ) : (
+            <>
+              {list.map((item) => {
+                return (
+                  <div key={item.id} style={{ marginBottom: '20px' }}>
+                    <TextField
+                      id="standard-basic"
+                      variant="outlined"
+                      value={item.name}
+                      disabled={false}
+                      sx={{ width: 350 }}
+                      onChange={(e) => {
+                        const found = list.find((todo) => todo.id === item.id)
+                        console.log('found', found)
+                        setList(
+                          list.map((todo) => {
+                            if (todo.id === found.id) {
+                              return {
+                                ...todo,
+                                name: e.target.value,
+                              }
+                            } else {
+                              return todo
+                            }
+                          })
+                        )
+                      }}
+                    />
+                    <IconButton
+                      aria-label="edit"
+                      sx={{ ml: 1, mt: 1 }}
+                      onClick={(e) => handleUpdate(item.id)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label="delete"
+                      sx={{ ml: 1, mt: 1 }}
+                      onClick={(e) => handleDelete(item.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </div>
+                )
+              })}
+            </>
+          )}
         </Grid>
       </Grid>
     </Container>
